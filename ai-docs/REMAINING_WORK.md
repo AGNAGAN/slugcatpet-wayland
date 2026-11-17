@@ -1,9 +1,9 @@
 # 原生 Wayland 迁移剩余工作
 
-- 日期：2026-10-25
-- 依据：`PHASE0_RESULTS.md`、`PHASE1_RESULTS.md`、`PHASE2_RESULTS.md`、`PHASE3_RESULTS.md`、`PHASE4_RESULTS.md`、`PHASE5_CURSOR_WRITE.md`、`PHASE5_PACKAGING.md` 与当前代码审计
+- 日期：2026-10-25（2026-11-17 更新 v1.3.4 合并状态）
+- 依据：`PHASE0_RESULTS.md`、`PHASE1_RESULTS.md`、`PHASE2_RESULTS.md`、`PHASE3_RESULTS.md`、`PHASE4_RESULTS.md`、`PHASE5_CURSOR_WRITE.md`、`PHASE5_PACKAGING.md`、`verification/logs/v1.3.4-final-checks.md` 与当前代码审计
 - 用途：记录 Phase 0–4 之后仍未完成的工作，作为 Phase 5 及后续功能的执行清单
-- 结论：**Phase 0–4 已完成；Phase 5 的 Wayland/KWin 光标写入、焦点保持、左/右键解除、多输出逃逸、Linux 打包、KWin 脚本持久安装/启用、desktop/图标、Linux CI 和 README 已完成。Rain World 配乐选择性导入、上游 v1.3.1–v1.3.3 合并、Lizard Pet 和自定义全局热键已实现。剩余最终验收（Lizard Pet 视觉/首次启动、注销登录、真实猫行为、Rain World 全屏、配乐导入 UI）和 Windows 完整行为回归。**
+- 结论：**Phase 0–4 已完成；Phase 5 的 Wayland/KWin 光标写入、焦点保持、左/右键解除、多输出逃逸、Linux 打包、KWin 脚本持久安装/启用、desktop/图标、Linux CI 和 README 已完成。Rain World 配乐选择性导入、上游 v1.3.1–v1.3.4 合并、Lizard Pet 和自定义全局热键已实现。剩余最终验收（Lizard Pet 视觉/首次启动、注销登录、真实猫行为、Rain World 全屏、配乐导入 UI）和 Windows 完整行为回归。**
 
 ---
 
@@ -17,7 +17,7 @@
 | Phase 3 | 已完成 | 全屏、窗口快照、热键、冲突提示、设置页状态与重载；持久安装/启用在 Phase 5 完成 |
 | Phase 4 | 已完成 | XDG 自启、输出选择、光标只读/写入能力、托盘锚点、transient 设置/音乐窗；desktop/图标在 Phase 5 完成 |
 | Phase 5 | 接近完成 | 光标写入、焦点/点击、多输出逃逸、Linux 打包、KWin 持久安装、desktop/图标、CI、README 已完成；最终人工验收和 Windows 行为回归待做 |
-| 后续功能 | 已完成 | Rain World 配乐选择性导入、自然排序、v1.3.1–v1.3.3、Lizard Pet、自定义全局热键；人工验收待做 |
+| 后续功能 | 已完成 | Rain World 配乐选择性导入、自然排序、v1.3.1–v1.3.4、Lizard Pet、自定义全局热键；人工验收待做 |
 
 ---
 
@@ -247,14 +247,16 @@
 - 测试应用使用隔离配置 `verification/fixtures/phase3-home`，重跑前复制到 `/tmp/slugcatpet-verify-home`；`XDG_CONFIG_HOME` 用 `/tmp/slugcatpet-verify-config`；验收脚本会临时加载/卸载 KWin 脚本。
 - Wayland/KWin 验收脚本、隔离配置和关键结果日志已从 `/tmp/opencode/` 归档到 `verification/`，不属于应用运行时代码；Ruff 已排除该目录。
 - Phase 0–4 已提交；Wayland 光标写入、焦点/点击、Linux 打包、KWin 持久安装、CI 和文档已作为 Phase 5 的一部分提交；`pyproject.toml` 的打包相关改动与 `uv.lock` 的用户改动分开处理。
-- 最近一次自动检查结果：
+- 最近一次自动检查结果（v1.3.4 合并后）：
+  - `uv run python -m compileall -q slugcatpet lizardpet tests tools`：通过
   - `uv run ruff check .`：通过
-  - `uv run ruff format --check .`：通过
+  - `uv run ruff format --check .`：通过（329 个文件）
   - `uv run python -m unittest discover -s tests`：61 个测试通过
   - `uv run python tools/params_doc.py --check`：通过
-  - `node --check`：几何脚本和快捷键脚本均通过
-  - `uv run python tools/kwin_integration_check.py`：PASS
-  - GitHub Actions Linux/Windows：`d08c076`、`363024d` success；此前 `511fdc7`、`4ce782f`、`912a0aa`、`10428d3`、`a640bb6`、`b7b8ef6`、`a59b47d` 也全部 success
+  - 渲染后的几何脚本 `main.js` 和快捷键脚本 `hotkeys.js` + `node --check`：均通过
+  - 行为检查：`items`、`env`、`cursor_play` 的物理状态逐 tick 与 v1.3.4 基线一致；渲染帧哈希因平台差异不同（89、85、107 帧）；`trouble` 仍是已知的绘制边界误报
+  - `uv run python tools/kwin_integration_check.py`：上一轮 v1.3.3 为 PASS；本机 KWin 会话改动未触及桥接脚本，待下次真机复核
+  - GitHub Actions Linux/Windows：v1.3.3 的 `d08c076`、`363024d` success；v1.3.4 合并提交推送后复核
 - 本机 KWin 验收：临时捕获面 + `QCursor.setPos()` 已能把光标从 `(700,1500)` 移到 `(569,1256)`；忙碌样式状态为 true，释放后恢复。uinput 持续移动到 eDP-1 时捕获面 `leaveEvent` 结束劫持，光标停在 `(569,354)`。
 - 输出切换实测：HDMI-A-1（DPR 1.5）→ eDP-1（DPR 2.0）→ HDMI-A-1（DPR 1.5），持久 KWin 脚本启用时仍能正确切换；自由长矛可在运行场景中生成并下落，不再触发输入区域 traceback。
 - 持久 KWin 脚本：`metadata.json` 的 `KPackageStructure: KWin/Script` 修复后，`reconfigure` 能在 Plasma 6.8 中加载 `slugcatpet`；运行时脚本使用 `slugcatpet-runtime`，停用持久插件不会卸载当前会话。
@@ -263,3 +265,4 @@
 - 2026-10-25 合并上游 v1.3.3（`e21099d`）：引入自定义全局热键、喵叫、catless 模式和 Lizard Pet；保留本分支的 native Wayland/KWin 适配、Rain World 配乐导入与自然排序。全量 61 个测试、Ruff、格式、参数文档和两份 KWin 脚本 `node --check` 通过。
 - 2026-10-25 真机 KWin 验证：把几何/光标脚本和快捷键脚本拆成 `slugcatpet-runtime` 与 `slugcatpet-hotkeys`；动作名按键位哈希。实测 meow、HUD、freeze、quit 按下/松开；把 freeze 改到 `Ctrl+Alt+0` 后旧 `Ctrl+Alt+2` 绑定被清除，重启应用后同一组键仍能触发。Lizard Pet 在本机 Wayland 会话启动，KWin 脚本加载成功且无报错。
 - 2026-10-22 音乐列表改为按目录和文件名自然排序（`1, 2, …, 10, 11, …, 100`），新增 2 个回归测试，全量 61 个测试通过。
+- 2026-11-17 合并上游 v1.3.4（`0853bdb`）：引入窗口内不下雨选项（`rain_window_block`）、雨贴图缓存/释放与斜度优化、珍珠编辑/雨的循环改进、猫让路和被踩猫下地逻辑、vsync 真实时长校正、运行日志与 Steam 库缓存。保留本分支的 native Wayland/KWin 适配、自定义全局热键、喵叫、catless 模式、Lizard Pet、Rain World 配乐导入与自然排序。合并后 61 个测试、Ruff、格式、参数文档和两份渲染后的 KWin 脚本 `node --check` 通过；三个行为场景的物理状态与上游 v1.3.4 基线逐 tick 一致，渲染帧哈希仍受平台差异影响。用户原有的 `pyproject.toml` 依赖大小写和 `uv.lock` 镜像/revision 改动在合并提交后恢复为未暂存状态，不进入合并提交。

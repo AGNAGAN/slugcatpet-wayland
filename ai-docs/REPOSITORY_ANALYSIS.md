@@ -1,6 +1,6 @@
 # SlugcatPet 仓库分析报告
 
-> 本文件是对仓库的整体分析，不属于项目运行文档。分析基于 2026-10-20 的 `main` 分支（版本 1.3.0）；2026-10-22 已合并上游 v1.3.2，2026-10-25 已合并 v1.3.3，除版本号和第 5.5 节外未重新统计。
+> 本文件是对仓库的整体分析，不属于项目运行文档。分析基于 2026-10-20 的 `main` 分支（版本 1.3.0）；2026-10-22 已合并上游 v1.3.2，2026-10-25 已合并 v1.3.3，2026-11-17 已合并 v1.3.4，除版本号和第 5.5、5.6 节外未重新统计。
 > 验证方式：Git 历史与结构统计、逐模块静态阅读、`ruff check`、`ruff format --check`，以及在本机实际导入 Rain World 素材、启动应用、运行行为回归。实测环境与结果见第 5 节。
 
 ---
@@ -20,7 +20,7 @@
 | 定位 | Windows 10/11 桌面宠物，Rain World 粉丝项目 |
 | 技术栈 | Python 3.12+、PySide6、numpy、Pillow、UnityPy |
 | 入口 | `run_slugcatpet.py` → `slugcatpet.main:main` |
-| 版本/许可 | 1.3.3，MIT（仅代码，不含游戏素材） |
+| 版本/许可 | 1.3.4，MIT（仅代码，不含游戏素材） |
 | 规模 | 261 个 Python 文件，约 4.77 万行，其中有效代码约 4.1 万行 |
 | 内容量 | 10 个角色、7 种能力、11 种物品、28 个行为、3 种配件 |
 | 素材策略 | 仓库不含游戏素材，首次启动从用户本机正版游戏提取到 `~/.slugcatpet/assets` |
@@ -155,6 +155,15 @@ main.py
 - Lizard Pet 可在本机 Wayland 会话启动，KWin 几何/快捷键脚本加载成功，蜥蜴音效素材已存在；视觉和首次启动素材提取 UI 仍待人工验收。
 - 尚未完成：注销/登录后的 KWin 持久脚本验证、Rain World 全屏与光标劫持组合、真实猫行为逐项验收、配乐导入 UI 人工验收、干净用户 `install.sh` 和 Windows 回归。
 
+### 5.6 v1.3.4 合并后复查（2026-11-17，真实 KWin Wayland 会话）
+
+- 上游 v1.3.4（`0853bdb`）主要改动：窗口内默认淡雨并提供 `rain_window_block` 选项、雨贴图缓存按斜度/雨强裁剪并在停雨时释放、珍珠编辑与雨循环细节、猫让路/被踩猫下地/局部穿行、vsync 时长校正、运行日志、Steam 库探测缓存。
+- 全量 61 个单元测试、Ruff、格式检查、`params_doc --check` 通过；渲染后的几何/快捷键 KWin 脚本均通过 `node --check`。
+- `items`、`env`、`cursor_play` 的物理状态逐 tick 与 v1.3.4 基线一致；帧哈希分别有 89、85、107 帧不同，仍是 Qt/平台渲染差异。`trouble` 仍触发已知的“实际绘制超出记录刷新范围”误报。
+- 本分支的 native Wayland/KWin 单 overlay + `setMask()` 输入区域、光标写入/焦点恢复、显式 KWin 集成、自定义热键、喵叫、catless、Lizard Pet、Rain World 配乐导入和自然排序均保留。
+- 合并冲突按 v1.3.4 行为基线解决：`pyproject.toml` 版本 1.3.4 + 本地多平台描述；`PARAMS.md` 用上游 makeway 文案；`rest/states.py` 用上游注释/赋值风格；`dialogs.py` 用上游 `refit()` 并在嵌入时刷新输入区域；`gen_vorbis_setups.py` 用上游 docstring 格式。
+- 尚未完成：注销/登录后的 KWin 持久脚本验证、Rain World 全屏与光标劫持组合、真实猫行为逐项验收、配乐导入 UI 人工验收、干净用户 `install.sh` 和 Windows 回归。
+
 ---
 
 ## 6. 风险与问题
@@ -162,7 +171,7 @@ main.py
 | 优先级 | 问题 | 说明 | 建议 |
 |---|---|---|---|
 | **P1** | 行为回归测试不可移植 | 实测：四个场景全部未通过。其中 `items`、`env`、`cursor_play` 物理一致但帧哈希分别有 83/100、87/90、108/108 帧不同（Linux/Qt 6.12）；`trouble` 在 tick 3437 出现 0.246 px 的物理分歧。`_setup_env` 还依赖 `~/.slugcatpet/assets`，干净环境/CI 无法运行；帧哈希是整窗 MD5，Qt 版本、平台、字体抗锯齿差异都会导致失败 | 增加“合成图集”测试夹具；拆分 `--physics` / `--frames` 模式；按平台记录基线；在 Windows 上复跑确认 `trouble` 的单点分歧 |
-| **P1** | 没有 CI | 仓库没有 `.github/workflows`，Ruff、参数文档、弧线校验、行为回归都靠手动 | 加一条最小 CI：Ruff + `params_doc --check` + 修正后的 `gen_arcs --check`；Windows job 跑行为检查 |
+| **P1** | CI 覆盖仍有限 | 已有 Linux/Windows workflow 跑 Ruff、格式、单元测试、参数文档和导入冒烟，但行为回归、KWin 真机集成和打包安装仍靠手动；`gen_arcs --check` 也未纳入 | 保持现有门禁，逐步增加合成图集的行为物理回归和 KWin 脚本静态检查 |
 | **P2** | `gen_arcs.py --check` 跨平台误报 | 实测在 Linux 上报告“已过期”，但解压后的弧线 JSON 与仓库完全一致；原因是直接比较 gzip 压缩字节，Python/zlib 在 Windows 和 Linux 上写出的 gzip OS 字段不同（偏移 9：`0x0a` vs `0x03`） | 将校验改为比较 `gzip.decompress()` 后的内容，或比较解压后 JSON 的规范化字节 |
 | **P2** | 隐藏猫生命周期不完整，存在丢猫风险 | `add_pet()` 只检查可见猫数量（`window.py:1089`），隐藏猫不占上限，反复“隐藏→新增”可让 `all_pets()` 超过 20；读档时 `_build_pets()` 又只恢复前 `MAX_PETS` 只（`window.py:247`），超出的隐藏猫会静默消失。另外 `_reground()` 只遍历 `self.pets`（`window.py:737`），隐藏猫在分辨率变化后可能没有更新身体边界 | 给“可见 + 隐藏”设总上限，或读档时恢复全部隐藏猫；`show_pet()`/工作区变化时也重建隐藏猫的尺寸和地面 |
 | **P2** | 配置损坏会静默重置 | `_load_params()` 捕获所有异常后返回 `{}`（`main.py:82-90`），随后自动保存会覆盖原文件，用户设置和存档可能丢失 | 损坏时先备份为 `app.json.bak`；加 schema 校验和用户可见提示 |

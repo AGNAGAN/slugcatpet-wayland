@@ -58,8 +58,8 @@ def main(argv):
     blob = base64.b64encode(zlib.compress(json.dumps(table).encode(), 9)).decode()
     lines = [blob[i : i + 96] for i in range(0, len(blob), 96)]
     OUT.write_text(
-        '"""场景曲的 Vorbis setup 头（libvorbis 生成，BSD），由 tools/gen_vorbis_setups.py 生成，勿手改。"""\n'
-        "\nimport base64\nimport json\nimport zlib\n\n_BLOB = (\n"
+        '"""场景曲的 Vorbis setup 头（libvorbis 生成，BSD），由 tools/gen_vorbis_setups.py 生成，勿手改。"""\n\n'
+        "import base64\nimport json\nimport zlib\n\n_BLOB = (\n"
         + "".join(f'    "{ln}"\n' for ln in lines)
         + ")\n\n# crc32 → (短块长, 长块长, setup 头, 模式表)\n"
         "SETUPS = {\n"

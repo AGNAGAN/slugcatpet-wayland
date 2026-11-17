@@ -212,6 +212,17 @@ def _freeze_heap():
     gc.freeze()
 
 
+def _setup_log():
+    import logging
+    from logging.handlers import RotatingFileHandler
+
+    h = RotatingFileHandler(
+        user_dir() / "slugcatpet.log", maxBytes=1 << 20, backupCount=1, encoding="utf-8", delay=True
+    )
+    h.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
+    logging.getLogger("slugcatpet").addHandler(h)
+
+
 def main():
     from .platform.appid import set_app_id, set_desktop_file_name
 
@@ -227,6 +238,7 @@ def main():
         si.notify_primary()
         return
     app._singleton = si  # 保持引用
+    _setup_log()
 
     from .platform import autostart
 
