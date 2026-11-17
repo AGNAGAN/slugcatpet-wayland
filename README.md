@@ -35,7 +35,7 @@ SlugcatPet 用 Python + PySide6 复刻《Rain World》蛞蝓猫的质点物理�
 - **声音**：场景配乐、雨声、喵叫；可从正版 Rain World 选择性导入配乐。
 - **交互**：托盘、全局热键、定格/单步、手动控制、状态 HUD、开机自启。
 - **Linux/Wayland**：单 overlay + 动态输入区域、KWin 置顶/全屏检测/挡雨窗口/全局热键、光标写入 best-effort。
-- **附加应用**：`lizardpet`（无猫模式）可从源码启动。
+- **附加应用**：`lizardpet`（没有猫和天气，场上只有蜥蜴、杆和蛋虫）可从源码启动。
 
 ### 运行要求
 
@@ -189,8 +189,8 @@ uv run python tools/params_doc.py --check
 uv run python tests/behavior_check.py check
 ```
 
-行为检查的物理状态可以跨平台比较；渲染帧哈希受 Qt、平台插件和字体抗锯齿影响，
-不同平台之间不保证一致。
+行为检查的物理状态用于跨平台回归；`trouble` 场景在 Linux 上有已知的绘制边界误报。
+渲染帧哈希受 Qt、平台插件和字体抗锯齿影响，不同平台之间不保证一致。
 
 项目结构和扩展文档：
 
@@ -203,7 +203,7 @@ uv run python tests/behavior_check.py check
 
 ### 附加应用：Lizard Pet
 
-仓库还包含 `lizardpet`（catless 模式），可从源码启动：
+仓库还包含 `lizardpet`（没有猫和天气，场上只有蜥蜴、杆和蛋虫），可从源码启动：
 
 ```bash
 uv run run_lizardpet.py
@@ -416,8 +416,9 @@ The behavior regression needs local Rain World assets:
 uv run python tests/behavior_check.py check
 ```
 
-Physics results are comparable across platforms; rendered-frame hashes depend on Qt, platform plugins,
-and font antialiasing, so they are not expected to match across platforms.
+Physics results are used for cross-platform regression; the `trouble` scenario has a known
+painted-bounds false positive on Linux. Rendered-frame hashes depend on Qt, platform plugins, and
+font antialiasing, so they are not expected to match across platforms.
 
 Documentation:
 
@@ -430,7 +431,8 @@ The documentation is mostly in Chinese.
 
 ### Extra app: Lizard Pet
 
-The repository also contains `lizardpet` (catless mode). Run it from source with:
+The repository also contains `lizardpet` (no cats or weather; only lizards, poles, and eggbugs).
+Run it from source with:
 
 ```bash
 uv run run_lizardpet.py
