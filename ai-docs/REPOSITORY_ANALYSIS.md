@@ -159,6 +159,7 @@ main.py
 
 - 上游 v1.3.4（`0853bdb`）主要改动：窗口内默认淡雨并提供 `rain_window_block` 选项、雨贴图缓存按斜度/雨强裁剪并在停雨时释放、珍珠编辑与雨循环细节、猫让路/被踩猫下地/局部穿行、vsync 时长校正、运行日志、Steam 库探测缓存。
 - 全量 61 个单元测试、Ruff、格式检查、`params_doc --check` 通过；渲染后的几何/快捷键 KWin 脚本均通过 `node --check`。
+- GitHub Actions Linux/Windows 在合并提交 `9053500` 上均 success（Linux 44009161596、Windows 44009161574）。
 - `items`、`env`、`cursor_play` 的物理状态逐 tick 与 v1.3.4 基线一致；帧哈希分别有 89、85、107 帧不同，仍是 Qt/平台渲染差异。`trouble` 仍触发已知的“实际绘制超出记录刷新范围”误报。
 - 本分支的 native Wayland/KWin 单 overlay + `setMask()` 输入区域、光标写入/焦点恢复、显式 KWin 集成、自定义热键、喵叫、catless、Lizard Pet、Rain World 配乐导入和自然排序均保留。
 - 合并冲突按 v1.3.4 行为基线解决：`pyproject.toml` 版本 1.3.4 + 本地多平台描述；`PARAMS.md` 用上游 makeway 文案；`rest/states.py` 用上游注释/赋值风格；`dialogs.py` 用上游 `refit()` 并在嵌入时刷新输入区域；`gen_vorbis_setups.py` 用上游 docstring 格式。
